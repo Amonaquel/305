@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class Main {
+public class Client {
     public static void main(String[] args) {
         try (Socket socket = new Socket("localhost", 8000);
              DataInputStream in = new DataInputStream(socket.getInputStream());
