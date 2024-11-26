@@ -5,13 +5,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.InputMismatchException;
 
 public class CarRentalServer {
-    private static final int PORT = 12345;
+    private static final int PORT = 8000;
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("Server is running on port " + PORT);
+            System.out.println("Server is running on port " + PORT+"...");
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 new Thread(new ClientHandler(clientSocket)).start();
@@ -38,15 +39,32 @@ class ClientHandler implements Runnable {
                 Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/CarRental", "root", "Am1423@@")
         ) {
             out.writeUTF("Enter 1 to Login, 2 to Signup:");
-            int option = in.readInt();
+            boolean check = false;  // To track whether a valid option is chosen
+            while (!check) {
+                try {
+                    // Read the option (1 for Login, 2 for Signup)
+                    int option = in.readInt();
 
-            if (option == 1) {
-                handleLogin(in, out, conn);
-            } else if (option == 2) {
-                handleSignup(in, out, conn);
-            } else {
-                out.writeUTF("Invalid option selected.");
+                    if (option == 1) {
+                        // Handle Login
+                        handleLogin(in, out, conn);
+                        check = true;  // Exit loop on successful login
+                    } else if (option == 2) {
+                        // Handle Signup
+                        handleSignup(in, out, conn);
+                        check = true;  // Exit loop on successful signup
+                    } else {
+                        out.writeUTF("Invalid option selected. Please enter 1 for Login or 2 for Signup.");
+                        // Consume the invalid input from the buffer
+                        in.readLine();  // Clears the invalid input in case of wrong format or non-integer input
+                    }
+                } catch (IOException | InputMismatchException e) {
+                    // If an exception occurs, print the message and ask for the input again
+                    out.writeUTF("Invalid input. Please enter a valid number (1 or 2).");
+                    in.readLine();  // Clear invalid input from the buffer
+                }
             }
+
 
         } catch (IOException | SQLException e) {
             System.err.println("Error handling client: " + e.getMessage());
@@ -61,24 +79,34 @@ class ClientHandler implements Runnable {
     }
 
     private void handleLogin(DataInputStream in, DataOutputStream out, Connection conn) throws IOException, SQLException {
-        out.writeUTF("Enter username:");
-        String username = in.readUTF();
-        out.writeUTF("Enter password:");
-        String password = in.readUTF();
+        String username;
+        String password;
+        boolean isAuthenticated = false;
 
-        String query = "SELECT * FROM Users WHERE username = ? AND password = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                out.writeUTF("Login successful!");
-                showCarListAndHandleSelection(in, out, conn, username);
-            } else {
-                out.writeUTF("Invalid credentials. Try again.");
+        // Keep asking for username and password until authentication is successful
+        while (!isAuthenticated) {
+            out.writeUTF("Enter username:");
+            username = in.readUTF();
+            out.writeUTF("Enter password:");
+            password = in.readUTF();
+
+            String query = "SELECT * FROM Users WHERE username = ? AND password = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, username);
+                stmt.setString(2, password);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    out.writeUTF("Login successful!");
+                    showCarListAndHandleSelection(in, out, conn, username);
+                    isAuthenticated = true; // Exit the loop if credentials are correct
+                } else {
+                    out.writeUTF("Invalid username or password. Please try again.");
+                }
             }
         }
     }
+
 
     private void handleSignup(DataInputStream in, DataOutputStream out, Connection conn) throws IOException, SQLException {
         out.writeUTF("Enter new username:");
