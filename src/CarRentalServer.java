@@ -1,7 +1,10 @@
 import java.io.*;
 import java.net.*;
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class CarRentalServer {
     private static final int PORT = 12345;
@@ -83,7 +86,7 @@ class ClientHandler implements Runnable {
         out.writeUTF("Enter new password:");
         String password = in.readUTF();
 
-        String query = "INSERT INTO Users (username, password, rented_license_plate) VALUES (?, ?, NULL)";
+        String query = "INSERT INTO Users (username, password, rented_license_plate, start_date, end_date) VALUES (?, ?, NULL, NULL, NULL)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
             stmt.setString(2, password);
@@ -101,7 +104,7 @@ class ClientHandler implements Runnable {
         ArrayList<Integer> carIds = new ArrayList<>();
         ArrayList<String> licensePlates = new ArrayList<>();
 
-        // Fetch available cars
+        // Fetch available cars only
         String carQuery = "SELECT id, name, license_plate FROM Cars WHERE available = TRUE";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(carQuery)) {
@@ -135,6 +138,10 @@ class ClientHandler implements Runnable {
         int carId = carIds.get(choice - 1);
         String licensePlate = licensePlates.get(choice - 1);
 
+        // Get and validate rental dates
+        String startDate = getValidDate(in, out, "Enter start date (YYYY-MM-DD): ");
+        String endDate = getValidDate(in, out, "Enter end date (YYYY-MM-DD): ", startDate);
+
         // Update the car and user records
         try {
             conn.setAutoCommit(false);
@@ -146,16 +153,19 @@ class ClientHandler implements Runnable {
                 stmt.executeUpdate();
             }
 
-            // Update the user's rented car
-            String updateUserQuery = "UPDATE Users SET rented_license_plate = ? WHERE username = ?";
+            // Update the user's rented car and rental dates
+            String updateUserQuery = "UPDATE Users SET rented_license_plate = ?, start_date = ?, end_date = ? WHERE username = ?";
             try (PreparedStatement stmt = conn.prepareStatement(updateUserQuery)) {
                 stmt.setString(1, licensePlate);
-                stmt.setString(2, username);
+                stmt.setString(2, startDate);
+                stmt.setString(3, endDate);
+                stmt.setString(4, username);
                 stmt.executeUpdate();
             }
 
             conn.commit();
             out.writeUTF("Car rented successfully!");
+
         } catch (SQLException e) {
             conn.rollback();
             out.writeUTF("Failed to rent car. Please try again.");
@@ -163,5 +173,64 @@ class ClientHandler implements Runnable {
         } finally {
             conn.setAutoCommit(true);
         }
+    }
+
+    private String getValidDate(DataInputStream in, DataOutputStream out, String prompt) throws IOException {
+        String date = null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setLenient(false);
+
+        while (true) {
+            out.writeUTF(prompt);
+            date = in.readUTF();
+
+            // Validate the date
+            try {
+                Date parsedDate = sdf.parse(date);
+                Date currentDate = new Date();
+                if (parsedDate.before(currentDate)) {
+                    out.writeUTF("Date cannot be in the past. Please enter a valid date.");
+                    continue;
+                }
+                break; // Valid date entered
+            } catch (ParseException e) {
+                out.writeUTF("Invalid date format. Please enter in the format YYYY-MM-DD.");
+            }
+        }
+
+        return date;
+    }
+
+    private String getValidDate(DataInputStream in, DataOutputStream out, String prompt, String startDate) throws IOException {
+        String date = null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setLenient(false);
+        Date startParsedDate = null;
+
+        try {
+            startParsedDate = sdf.parse(startDate);
+        } catch (ParseException e) {
+            out.writeUTF("Invalid start date format.");
+            return null;
+        }
+
+        while (true) {
+            out.writeUTF(prompt);
+            date = in.readUTF();
+
+            // Validate the date
+            try {
+                Date parsedDate = sdf.parse(date);
+                if (parsedDate.before(startParsedDate)) {
+                    out.writeUTF("End date cannot be before start date. Please enter a valid end date.");
+                    continue;
+                }
+                break; // Valid end date entered
+            } catch (ParseException e) {
+                out.writeUTF("Invalid date format. Please enter in the format YYYY-MM-DD.");
+            }
+        }
+
+        return date;
     }
 }
