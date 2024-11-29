@@ -36,8 +36,7 @@ class ClientHandler implements Runnable {
                 DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
                 Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/car_renatl", "root", "root")
-        )
-        {
+        ) {
 
             boolean check = false;
 
@@ -77,10 +76,10 @@ class ClientHandler implements Runnable {
         boolean isAuthenticated = false;
 
         while (!isAuthenticated) {
-            out.writeUTF("Enter username:");
-            username = in.readUTF();
-            out.writeUTF("Enter password:");
-            password = in.readUTF();
+            String Strn = "Enter username:";
+            username = checknull(in, out, Strn);
+            String Strp = "Enter password:";
+            password = checknull(in, out, Strp);
 
             String query = "SELECT * FROM Users WHERE username = ? AND password = ?";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -99,11 +98,30 @@ class ClientHandler implements Runnable {
         }
     }
 
+    private String checknull(DataInputStream in, DataOutputStream out, String message) {
+        String userInput = "";
+        boolean flag = false;
+        while (!flag) {
+            try {
+                out.writeUTF(message);
+                userInput = in.readUTF();
+                if (userInput != null && !userInput.trim().isEmpty()) {
+                    flag = true;
+                } else {
+                    throw new IllegalArgumentException("Input cannot be null or empty.");
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        return userInput;
+    }
+
     private void handleSignup(DataInputStream in, DataOutputStream out, Connection conn) throws IOException, SQLException {
-        out.writeUTF("Enter new username:");
-        String username = in.readUTF();
-        out.writeUTF("Enter new password:");
-        String password = in.readUTF();
+        String Strn = "Enter new username:";
+        String username = checknull(in, out, Strn);
+        String Strp = "Enter new password:";
+        String password = checknull(in, out, Strp);
 
         String query = "INSERT INTO Users (username, password) VALUES (?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
@@ -126,16 +144,16 @@ class ClientHandler implements Runnable {
 
     private void showCarListAndHandleSelection(DataInputStream in, DataOutputStream out, Connection conn, int userId) throws IOException, SQLException {
         ArrayList<Integer> carIds = new ArrayList<>();
-        ArrayList<String> licensePlates = new ArrayList<>();
+        ArrayList<String> licensePs = new ArrayList<>();
 
-        String carQuery = "SELECT id, name, license_plate FROM Cars WHERE available = TRUE";
+        String carQuery = "SELECT id, name, license_plate FROM cars WHERE available = TRUE";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(carQuery)) {
             int index = 1;
             while (rs.next()) {
                 out.writeUTF(index + ". " + rs.getString("name") + " (License Plate: " + rs.getString("license_plate") + ")");
                 carIds.add(rs.getInt("id"));
-                licensePlates.add(rs.getString("license_plate"));
+                licensePs.add(rs.getString("license_plate"));
                 index++;
             }
         }
@@ -145,53 +163,53 @@ class ClientHandler implements Runnable {
             return;
         }
 
-        out.writeUTF("Enter the numbers of the cars you want to rent (e.g., 1,2,3):");
-        String input = in.readUTF();
-        String[] selectedNumbers = input.split(",");
-        ArrayList<Integer> selectedCarIds = new ArrayList<>();
-        ArrayList<String> selectedLicensePlates = new ArrayList<>();
 
-        for (String number : selectedNumbers) {
+        // ArrayList<Integer> selectedCarIds = new ArrayList<>();
+        // ArrayList<String> selectedlicensePs = new ArrayList<>();
+        int carId = 0;
+        String licenseP = null;
+        boolean correct = false;
+
+        while (!correct) {
+            String strm = "Enter the car number you want to rent :";
+            String input = checknull(in, out, strm);
             try {
-                int choice = Integer.parseInt(number.trim());
+                int choice = Integer.parseInt(input.trim());
                 if (choice < 1 || choice > carIds.size()) {
                     out.writeUTF("Invalid choice! Please select valid car numbers.");
-                    return;
+                } else {
+                    carId = (carIds.get(choice - 1));
+                    licenseP = (licensePs.get(choice - 1));
+                    correct = true;
                 }
-                selectedCarIds.add(carIds.get(choice - 1));
-                selectedLicensePlates.add(licensePlates.get(choice - 1));
             } catch (NumberFormatException e) {
-                out.writeUTF("Invalid input format. Please enter numbers separated by commas.");
-                return;
+                out.writeUTF("Invalid input format. (only one number ex : 1  )");
             }
         }
-
         try {
+            System.out.println("GG database");
             conn.setAutoCommit(false);
 
-            for (int i = 0; i < selectedCarIds.size(); i++) {
-                int carId = selectedCarIds.get(i);
-                String licensePlate = selectedLicensePlates.get(i);
 
-                // Prompt for start and end date for each car
-                String startDate = getValidDate(in, out, "Enter start date for car (" + licensePlate + ") (YYYY-MM-DD): ");
-                String endDate = getValidDate(in, out, "Enter end date for car (" + licensePlate + ") (YYYY-MM-DD): ", startDate);
+            // Prompt for start and end date for each car
+            String startDate = getValidDate(in, out, "Enter start date for car (" + licenseP + ") (YYYY-MM-DD): ");
+            String endDate = getValidDate(in, out, "Enter end date for car (" + licenseP + ") (YYYY-MM-DD): ", startDate);
 
-                String updateCarQuery = "UPDATE Cars SET available = FALSE WHERE id = ?";
-                try (PreparedStatement stmt = conn.prepareStatement(updateCarQuery)) {
-                    stmt.setInt(1, carId);
-                    stmt.executeUpdate();
-                }
-
-                String insertRentalQuery = "INSERT INTO rentals (user_id, license_plate, start_date, end_date) VALUES (?, ?, ?, ?)";
-                try (PreparedStatement stmt = conn.prepareStatement(insertRentalQuery)) {
-                    stmt.setInt(1, userId);
-                    stmt.setString(2, licensePlate);
-                    stmt.setString(3, startDate);
-                    stmt.setString(4, endDate);
-                    stmt.executeUpdate();
-                }
+            String updateCarQuery = "UPDATE Cars SET available = FALSE WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(updateCarQuery)) {
+                stmt.setInt(1, carId);
+                stmt.executeUpdate();
             }
+
+            String insertRentalQuery = "INSERT INTO rentals (user_id, license_plate, start_date, end_date) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertRentalQuery)) {
+                stmt.setInt(1, userId);
+                stmt.setString(2, licenseP);
+                stmt.setString(3, startDate);
+                stmt.setString(4, endDate);
+                stmt.executeUpdate();
+            }
+
 
             conn.commit();
             out.writeUTF("Cars rented successfully! Connection will now close.");

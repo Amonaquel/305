@@ -24,6 +24,7 @@ public class Main {
                        getUserinput(serverMessage,console,out);
                     }
                 } catch (EOFException e) {
+                    System.out.println("hellooooooooooo");
                     System.out.println(e.getMessage());
                     System.out.println("Server closed the connection.");
                     break;
@@ -39,7 +40,20 @@ public class Main {
     }
 
     public static void getUserinput(String serverMessage, BufferedReader console, DataOutputStream out) throws IOException {
-        String userInput = console.readLine();
+        String userInput = "";
+        while  (userInput.isEmpty())  {
+            try {
+                userInput = console.readLine();
+                if (userInput == null || userInput.trim().isEmpty())  {
+                    throw new IllegalArgumentException("Input cannot be null or empty.");
+                }
+            } catch (Exception e) {
+                System.out.println("here is the error ");
+                System.out.println(e.getMessage());
+            }
+        }
+
+
         try {
             if (serverMessage.contains("number of the car") || serverMessage.contains("1 to Login, 2 to Signup")) {
                 out.writeInt(Integer.parseInt(userInput));
