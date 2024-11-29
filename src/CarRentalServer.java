@@ -35,7 +35,7 @@ class ClientHandler implements Runnable {
         try (
                 DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/CarRental", "root", "Asdf/2003")
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/Car-Rental", "root", "root")
         ) {
             out.writeUTF("Enter 1 to Login, 2 to Signup:");
             boolean check = false;
