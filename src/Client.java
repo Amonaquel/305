@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class Main {
+public class Client {
     public static void main(String[] args) throws IOException {
         try (Socket socket = new Socket("localhost", 8000);
 
@@ -15,7 +15,7 @@ public class Main {
                     String serverMessage = in.readUTF();
                     System.out.println(serverMessage);
 
-                    if (serverMessage.contains("Connection will now close")) {
+                    if (serverMessage.contains("Thanks")) {
                         System.out.println("Closing connection...");
                         break;
                     }
@@ -24,8 +24,6 @@ public class Main {
                        getUserinput(serverMessage,console,out);
                     }
                 } catch (EOFException e) {
-                    System.out.println("hellooooooooooo");
-                    System.out.println(e.getMessage());
                     System.out.println("Server closed the connection.");
                     break;
                 } catch (IOException e) {
@@ -36,34 +34,36 @@ public class Main {
             }
         } catch (IOException e) {
             System.err.println("Error connecting to server: " + e.getMessage());
+        }catch (Exception e) {
+            System.err.println("Something went wrong, Please try again. ");
         }
     }
-
+    // Ensuring the input is neither null nor empty
     public static void getUserinput(String serverMessage, BufferedReader console, DataOutputStream out) throws IOException {
         String userInput = "";
-        while  (userInput.isEmpty())  {
+
+        while (true) {  // Infinite loop until valid input
             try {
                 userInput = console.readLine();
-                if (userInput == null || userInput.trim().isEmpty())  {
+               // System.out.println("Client inputttt ======" + userInput);// uncomment this for debug
+                if (userInput == null || userInput.trim().isEmpty()) {
                     throw new IllegalArgumentException("Input cannot be null or empty.");
                 }
-            } catch (Exception e) {
-                System.out.println("here is the error ");
+
+                if (serverMessage.contains("number")) {
+                    out.writeInt(Integer.parseInt(userInput));  // Attempt to write an integer
+                   // System.out.println("The value is a num======" + userInput); // uncomment this for debug
+                } else {
+                    out.writeUTF(userInput);  // Attempt to write a string
+                }
+                break;  // Exit loop if input is valid
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
         }
-
-
-        try {
-            if (serverMessage.contains("number of the car") || serverMessage.contains("1 to Login, 2 to Signup")) {
-                out.writeInt(Integer.parseInt(userInput));
-            } else {
-                out.writeUTF(userInput);
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Please enter a number.");
-            getUserinput(serverMessage,console,out);
-        }
     }
+
 }
 
