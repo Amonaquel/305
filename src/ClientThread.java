@@ -16,7 +16,7 @@ class ClientThread implements Runnable {
         try (
                 DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/car_renatl", "root", "root")
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/carrental", "root", "Asdf/2003")
         ) {
 
             boolean check = false;

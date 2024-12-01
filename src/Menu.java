@@ -1,5 +1,6 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,9 +23,7 @@ public class Menu {
                     rental.execute(in, out, conn, userId);
                     check = true;
                 }else if (option == 3) {
-                    out.writeUTF("Tanks for using our car rent app :) ");
-                    conn.setAutoCommit(true);
-                    check = true;
+                    out.writeUTF("Thanks for using our car rent app :) ");
                 }else {
                     out.writeUTF("Invalid option selected. Please enter 1 for car list or 2 for rental cars or 3 for exit.");
                 }
