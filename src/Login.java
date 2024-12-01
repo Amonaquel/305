@@ -27,8 +27,8 @@ public class Login {
 
                 if (rs.next()) {
                     out.writeUTF("Login successful!");
-                    CarList carList = new CarList();
-                    carList.showCarListAndHandleSelection(in, out, conn, rs.getInt("id"));
+                    Menu menu = new Menu();
+                    menu.execute(in, out, conn, rs.getInt("id"));
                     isAuthenticated = true;
                 } else {
                     out.writeUTF("Invalid username or password. Please try again.");

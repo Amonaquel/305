@@ -16,13 +16,13 @@ class ClientThread implements Runnable {
         try (
                 DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/car_renatl", "root", "root")
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/carrental", "root", "Asdf/2003")
         ) {
 
             boolean check = false;
 
             while (!check) {
-                out.writeUTF("Enter number: 1- to Login, 2- to Signup : ");
+                out.writeUTF("Enter number: 1 to Login, 2 to Signup : ");
 
                 try {
                     int option = in.readInt();

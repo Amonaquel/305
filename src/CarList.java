@@ -9,7 +9,7 @@ public class CarList {
         ArrayList<Integer> carIds = new ArrayList<>();
         ArrayList<String> licensePs = new ArrayList<>();
         int userInput = 0;
-        do {
+
             out.writeUTF("Displaying available cars ...\n");
             String carQuery = "SELECT id, name, license_plate FROM cars WHERE available = TRUE";
             try (Statement stmt = conn.createStatement();
@@ -74,15 +74,17 @@ public class CarList {
                 }
                 conn.commit();
                 out.writeUTF("Cars rented successfully!\n");
-                out.writeUTF("Enter number : 1- to rent another car , 2- to Exit");
-                userInput = in.readInt();
+                //out.writeUTF("Enter number : 1- to rent another car , 2- to Exit");
+                //userInput = in.readInt();
+                Menu menu = new Menu();
+                menu.execute(in, out, conn, userId);
             } catch (SQLException e) {
                 conn.rollback();
                 out.writeUTF("Failed to rent cars. Please try again.");
                 throw e;
             }
-        }while (userInput != 2) ;
-        out.writeUTF("Tanks for using our car rent app :) ");
+
+       // out.writeUTF("Tanks for using our car rent app :) ");
         conn.setAutoCommit(true);
 
     }

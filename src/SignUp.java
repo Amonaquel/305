@@ -21,8 +21,8 @@ public class SignUp {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         int userId = rs.getInt(1);
-                        CarList carList = new CarList();
-                        carList.showCarListAndHandleSelection(in, out, conn, userId);
+                        Menu menu = new Menu();
+                        menu.execute(in, out, conn, userId);
                     }
                 }
             } else {
