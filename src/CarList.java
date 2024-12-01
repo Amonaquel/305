@@ -3,9 +3,15 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 public class CarList {
+
+    private static final Lock lock = new ReentrantLock();
+
     public void showCarListAndHandleSelection(DataInputStream in, DataOutputStream out, Connection conn, int userId) throws IOException, SQLException {
+       
+        
         ArrayList<Integer> carIds = new ArrayList<>();
         ArrayList<String> licensePs = new ArrayList<>();
         int userInput = 0;
@@ -57,13 +63,28 @@ public class CarList {
                 CheckDate check = new CheckDate();
                 String startDate = check.getValidDate(in, out, "Enter start date for car (" + licenseP + ") (YYYY-MM-DD): ");
                 String endDate = check.getValidDate(in, out, "Enter end date for car (" + licenseP + ") (YYYY-MM-DD): ", startDate);
+                 lock.lock();
+            try {
+                // Double-check car availability inside the lock
+                String availabilityCheckQuery = "SELECT available FROM cars WHERE id = ? FOR UPDATE";
+                try (PreparedStatement checkStmt = conn.prepareStatement(availabilityCheckQuery)) {
+                    checkStmt.setInt(1, carId);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (!rs.next() || !rs.getBoolean("available")) {
+                            out.writeUTF("Sorry, the selected car is no longer available.");
+                           showCarListAndHandleSelection(in, out, conn, userId);
+                        }
+                    }
+                }
 
-                String updateCarQuery = "UPDATE Cars SET available = FALSE WHERE id = ?";
+                // Update car availability
+                String updateCarQuery = "UPDATE cars SET available = FALSE WHERE id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(updateCarQuery)) {
                     stmt.setInt(1, carId);
                     stmt.executeUpdate();
                 }
 
+                // Insert rental information
                 String insertRentalQuery = "INSERT INTO rentals (user_id, license_plate, start_date, end_date) VALUES (?, ?, ?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(insertRentalQuery)) {
                     stmt.setInt(1, userId);
@@ -72,8 +93,13 @@ public class CarList {
                     stmt.setString(4, endDate);
                     stmt.executeUpdate();
                 }
+
                 conn.commit();
-                out.writeUTF("Cars rented successfully!\n");
+                out.writeUTF("Car rented successfully!\n");
+            } finally {
+                lock.unlock();  // Always release the lock
+            }
+                
                 //out.writeUTF("Enter number : 1- to rent another car , 2- to Exit");
                 //userInput = in.readInt();
                 Menu menu = new Menu();
