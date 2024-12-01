@@ -14,10 +14,10 @@ public class Login {
         boolean isAuthenticated = false;
 
         while (!isAuthenticated) {
-            String Strn = "Enter username:";
-            username = ClientThread.checknull(in, out, Strn);
-            String Strp = "Enter password:";
-            password = ClientThread.checknull(in, out, Strp);
+            out.writeUTF( "Enter username:");
+            username = in.readUTF();
+             out.writeUTF("Enter password:");
+            password = in.readUTF();
 
             String query = "SELECT * FROM Users WHERE username = ? AND password = ?";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {

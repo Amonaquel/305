@@ -47,7 +47,7 @@ public class Client {
                 userInput = console.readLine();
                // System.out.println("Client inputttt ======" + userInput);// uncomment this for debug
                 if (userInput == null || userInput.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Input cannot be null or empty.");
+                    throw new IllegalArgumentException("Input cannot be null or empty.\n"+ serverMessage);
                 }
 
                 if (serverMessage.contains("number")) {

@@ -6,10 +6,10 @@ import java.sql.*;
 public class SignUp {
 
     public void execute(DataInputStream in, DataOutputStream out, Connection conn) throws IOException, SQLException {
-        String Strn = "Enter new username:";
-        String username = ClientThread.checknull(in, out, Strn);
-        String Strp = "Enter new password:";
-        String password = ClientThread.checknull(in, out, Strp);
+        out.writeUTF( "Enter new username:");
+        String username = in.readUTF();
+        out.writeUTF("Enter new password:");
+        String password = in.readUTF();
 
         String query = "INSERT INTO Users (username, password) VALUES (?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {

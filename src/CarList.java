@@ -14,8 +14,7 @@ public class CarList {
         
         ArrayList<Integer> carIds = new ArrayList<>();
         ArrayList<String> licensePs = new ArrayList<>();
-        int userInput = 0;
-
+        
             out.writeUTF("Displaying available cars ...\n");
             String carQuery = "SELECT id, name, license_plate FROM cars WHERE available = TRUE";
             try (Statement stmt = conn.createStatement();
@@ -39,8 +38,10 @@ public class CarList {
             boolean correct = false;
 
             while (!correct) {
-                String strm = "Enter the car num you want to rent :";
-                String input = ClientThread.checknull(in, out, strm);
+
+                out.writeUTF( "Enter the car num you want to rent :");
+                String input = in.readUTF();
+
                 try {
 
                     int choice = Integer.parseInt(input.trim());

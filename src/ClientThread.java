@@ -52,29 +52,4 @@ class ClientThread implements Runnable {
             }
         }
     }
-
-
-    public static String checknull(DataInputStream in, DataOutputStream out, String message) {
-        String userInput = "";
-        boolean flag = false;
-        while (!flag) {
-            try {
-                out.writeUTF(message);
-                userInput = in.readUTF();
-               // out.writeUTF("Threadeduserinput ========" + userInput); // uncomment this for debug
-                if (userInput != null && !userInput.trim().isEmpty()) {
-                    flag = true;
-                } else {
-                    throw new IllegalArgumentException("Input cannot be null or empty.");
-                }
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        return userInput;
-    }
-
-
-
-
 }
