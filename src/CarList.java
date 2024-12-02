@@ -30,7 +30,8 @@ public class CarList {
 
             if (carIds.isEmpty()) {
                 out.writeUTF("No cars are available for rent.");
-                return;
+                Menu menu = new Menu();
+                menu.execute(in, out, conn, userId);
             }
 
             int carId = 0;
