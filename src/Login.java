@@ -26,7 +26,7 @@ public class Login {
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
-                    out.writeUTF("Login successful!");
+                    out.writeUTF("Login successful!\n"+"Hello "+ rs.getString("username"));
                     Menu menu = new Menu();
                     menu.execute(in, out, conn, rs.getInt("id"));
                     isAuthenticated = true;

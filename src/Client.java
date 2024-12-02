@@ -19,8 +19,8 @@ public class Client {
                         System.out.println("Closing connection...");
                         break;
                     }
-
-                    if (serverMessage.contains("Enter")) { // Handles server prompts requiring user input
+                    // handle user input 
+                    if (serverMessage.contains("Enter")) { 
                        getUserinput(serverMessage,console,out);
                     }
                 } catch (EOFException e) {
@@ -37,25 +37,25 @@ public class Client {
             System.err.println("Something went wrong, Please try again. ");
         }
     }
+
     // Ensuring the input is neither null nor empty
     public static void getUserinput(String serverMessage, BufferedReader console, DataOutputStream out) throws IOException {
         String userInput = "";
 
-        while (true) {  // Infinite loop until valid input
+        while (true) {  
             try {
                 userInput = console.readLine();
-               // System.out.println("Client inputttt ======" + userInput);// uncomment this for debug
                 if (userInput == null || userInput.trim().isEmpty()) {
                     throw new IllegalArgumentException("Input cannot be null or empty.\n"+ serverMessage);
                 }
 
                 if (serverMessage.contains("number")) {
-                    out.writeInt(Integer.parseInt(userInput));  // Attempt to write an integer
-                   // System.out.println("The value is a num======" + userInput); // uncomment this for debug
+                    out.writeInt(Integer.parseInt(userInput));  
                 } else {
-                    out.writeUTF(userInput);  // Attempt to write a string
+                    out.writeUTF(userInput);  
                 }
-                break;  // Exit loop if input is valid
+                break;  // Exit loop if the user input is valid
+
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a number.");
             } catch (IllegalArgumentException e) {

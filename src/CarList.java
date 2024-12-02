@@ -27,7 +27,7 @@ public class CarList {
                     index++;
                 }
             }
-
+            //check if there is available cars 
             if (carIds.isEmpty()) {
                 out.writeUTF("No cars are available for rent.");
                 Menu menu = new Menu();
@@ -61,7 +61,7 @@ public class CarList {
                 conn.setAutoCommit(false);
 
 
-                // Prompt for start and end date for each car
+                // ask the user for date
                 CheckDate check = new CheckDate();
                 String startDate = check.getValidDate(in, out, "Enter start date for car (" + licenseP + ") (YYYY-MM-DD): ");
                 String endDate = check.getValidDate(in, out, "Enter end date for car (" + licenseP + ") (YYYY-MM-DD): ", startDate);
@@ -85,7 +85,7 @@ public class CarList {
                     stmt.executeUpdate();
                 }
 
-                // Insert rental information
+                // Insert rental info
                 String insertRentalQuery = "INSERT INTO rentals (user_id, license_plate, start_date, end_date) VALUES (?, ?, ?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(insertRentalQuery)) {
                     stmt.setInt(1, userId);
@@ -98,11 +98,8 @@ public class CarList {
                 conn.commit();
                 out.writeUTF("Car rented successfully!\n");
            } finally {
-                lock.unlock();  // Always release the lock
+                lock.unlock(); 
            }
-                
-                //out.writeUTF("Enter number : 1- to rent another car , 2- to Exit");
-                //userInput = in.readInt();
                 Menu menu = new Menu();
                 menu.execute(in, out, conn, userId);
             } catch (SQLException e) {
@@ -110,8 +107,6 @@ public class CarList {
                 out.writeUTF("Failed to rent cars. Please try again.");
                 throw e;
             }
-
-       // out.writeUTF("Tanks for using our car rent app :) ");
         conn.setAutoCommit(true);
 
     }

@@ -15,8 +15,8 @@ public class SignUp {
         try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, username);
             stmt.setString(2, password);
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
+            int done = stmt.executeUpdate();
+            if (done > 0) {
                 out.writeUTF("Signup successful!");
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {

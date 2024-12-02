@@ -24,10 +24,8 @@ public class Menu {
                 }else if (option == 3) {
                     out.writeUTF("Thanks for using our car rent app :) ");
                 }else {
-                    out.writeUTF("Invalid option selected. Please enter 1 for car list or 2 for rental cars or 3 for exit.");
+                    out.writeUTF("Invalid option selected.");
                 }
-            } catch (IOException | NumberFormatException e) {
-                out.writeUTF("Invalid input. Please enter a valid number (1 or 2 or 3).");
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
