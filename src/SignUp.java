@@ -11,6 +11,17 @@ public class SignUp {
         out.writeUTF("Enter new password:");
         String password = in.readUTF();
 
+        String checkQuery = "SELECT COUNT(*) FROM Users WHERE username = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, username);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    
+                    out.writeUTF("Username already exists. Please choose a different username.");
+                   execute(in, out, conn);  
+                }
+            }
+        }
         String query = "INSERT INTO Users (username, password) VALUES (?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, username);
