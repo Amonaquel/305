@@ -16,7 +16,7 @@ class ClientThread implements Runnable {
         try (
                 DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/carrental", "root", "Asdf/2003")
+                Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/car_renatl", "root", "root")
         ) {
 
             boolean check = false;
@@ -35,10 +35,10 @@ class ClientThread implements Runnable {
                         signuphandler.execute(in, out, conn);
                         check = true;
                     }else {
-                        out.writeUTF("Invalid option selected. Please enter 1 for Login or 2 for Signup.");
+                      throw new IllegalArgumentException("Invalid option selected. Please enter 1 for Login or 2 for Signup.");
                     }
-                } catch (IOException | NumberFormatException e) {
-                    out.writeUTF("Invalid input. Please enter a valid number (1 or 2).");
+                } catch (IllegalArgumentException  e) {
+                    out.writeUTF(e.getMessage());
                 }
             }
         } catch (IOException | SQLException e) {

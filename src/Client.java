@@ -28,7 +28,6 @@ public class Client {
                     break;
                 } catch (IOException e) {
                     System.err.println("Client error: " + e.getMessage());
-                    e.printStackTrace();
                     break;
                 }
             }

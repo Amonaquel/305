@@ -64,9 +64,8 @@ public class CarList {
                 CheckDate check = new CheckDate();
                 String startDate = check.getValidDate(in, out, "Enter start date for car (" + licenseP + ") (YYYY-MM-DD): ");
                 String endDate = check.getValidDate(in, out, "Enter end date for car (" + licenseP + ") (YYYY-MM-DD): ", startDate);
-                 lock.lock();
-            try {
-                // Double-check car availability inside the lock
+                lock.lock();
+                try {
                 String availabilityCheckQuery = "SELECT available FROM cars WHERE id = ? FOR UPDATE";
                 try (PreparedStatement checkStmt = conn.prepareStatement(availabilityCheckQuery)) {
                     checkStmt.setInt(1, carId);
@@ -97,9 +96,9 @@ public class CarList {
 
                 conn.commit();
                 out.writeUTF("Car rented successfully!\n");
-            } finally {
+           } finally {
                 lock.unlock();  // Always release the lock
-            }
+           }
                 
                 //out.writeUTF("Enter number : 1- to rent another car , 2- to Exit");
                 //userInput = in.readInt();
